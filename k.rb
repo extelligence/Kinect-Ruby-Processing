@@ -1,29 +1,13 @@
 require 'ruby-processing'
-# require File.expand_path(File.dirname(__FILE__)) + "/library/openkinect/openkinect.jar"
 
 class Sketch < Processing::App
   load_library "openkinect"
   include_package 'org.openkinect'
   include_package 'org.openkinect.processing'
-  # include_class 'org.openkinect.processing.Kinect'
-  # import 'org.openkinect.processing.Kinect'
 
   attr_accessor :kinect, :depth, :rgb, :ir, :deg
   
-  # @kinect = nil
-  # @depth = true
-  # @rgb = false
-  # @ir = false
-  
-  # @deg = 15  # Start at 15 degrees
-  
   def setup()
-    # current = java.lang.System.getProperty("java.library.path")
-    # p current
-    # java.lang.System.setProperty("java.library.path",
-    # "#{current}:#{File.expand_path('library/openkinect')}");
-    # p current = java.lang.System.getProperty("java.library.path")
-    
     @deg = 15
     
     size(1280,520);
@@ -53,12 +37,12 @@ class Sketch < Processing::App
       
     elsif (key == 'r')
       @rgb = !@rgb;
-      @ir = false if @rgb
+      @ir = false if !!@rgb
       @kinect.enableRGB(@rgb);
       
     elsif (key == 'i')
       @ir = !@ir;
-      @rgb = false if @ir;
+      @rgb = false if !!@ir;
       @kinect.enableIR(@ir);
       
     elsif (key == CODED)
@@ -68,8 +52,10 @@ class Sketch < Processing::App
         @deg = @deg - 1;
       end
       @deg = constrain(@deg,0,30);
-      p "tilting to: #{@deg}"
       @kinect.tilt(@deg);
+      
+      elsif (key == 's')
+        stop
     end
   end
   
