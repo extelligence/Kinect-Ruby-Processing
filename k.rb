@@ -9,6 +9,9 @@ class Sketch < Processing::App
   
   def setup()
     @deg = 15
+    @depth = true
+    @rgb = false
+    @ir = false
     
     size(1280,520);
     @kinect = Kinect.new(self)
@@ -37,12 +40,12 @@ class Sketch < Processing::App
       
     elsif (key == 'r')
       @rgb = !@rgb;
-      @ir = false if !!@rgb
+      @ir = false if @rgb
       @kinect.enableRGB(@rgb);
       
     elsif (key == 'i')
       @ir = !@ir;
-      @rgb = false if !!@ir;
+      @rgb = false if @ir;
       @kinect.enableIR(@ir);
       
     elsif (key == CODED)
@@ -61,6 +64,6 @@ class Sketch < Processing::App
   
   def stop()
     @kinect.quit();
-    # super.stop();
+    exit
   end
 end
