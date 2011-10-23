@@ -1,4 +1,13 @@
 - move the .rp5rc file into your home dir
 - edit .rp5rc to have the correct java library path
-= plug in your kinect
+- plug in your kinect
 - run: $ rp5 run k.rb
+
+For Live Coding:
+- run: $ rp5 live k.rb
+- type this
+$app.toggle_rgb
+$app.tilt_up
+etc.
+
+More on Ruby-Processing Live Coding here: https://github.com/jashkenas/ruby-processing/wiki/Sketch-Watching-and-Live-Coding
