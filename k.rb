@@ -30,7 +30,7 @@ class Sketch < Processing::App
     fill(255);
     text("RGB/IR FPS: #{@kinect.getVideoFPS()}        Camera tilt: #{@deg} degrees",10,495);
     text("DEPTH FPS: #{@kinect.getDepthFPS()}",640,495);
-    text("Press 'd' to enable/disable depth    Press 'r' to enable/disable rgb image   Press 'i' to enable/disable IR image  UP and DOWN to tilt camera   Framerate: #{@frame_rate}",10,515);
+    text("Press 'd' to enable/disable depth    Press 'r' to enable/disable rgb image   Press 'i' to enable/disable IR image (crashy!)   Press 'q' to quit   UP and DOWN to tilt camera   Framerate: #{@frame_rate}",10,515);
   end
   
   def keyPressed()
@@ -57,7 +57,7 @@ class Sketch < Processing::App
       @deg = constrain(@deg,0,30);
       @kinect.tilt(@deg);
       
-      elsif (key == 's')
+      elsif (key == 'q')
         stop
     end
   end
