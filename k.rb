@@ -6,6 +6,7 @@ class Sketch < Processing::App
   include_package 'org.openkinect.processing'
 
   attr_accessor :kinect, :depth, :rgb, :ir, :deg
+  alias_method :quit, :stop
   
   def setup()
     @deg = 15
@@ -33,29 +34,50 @@ class Sketch < Processing::App
     text("Press 'd' to enable/disable depth    Press 'r' to enable/disable rgb image   Press 'i' to enable/disable IR image (crashy!)   Press 'q' to quit   UP and DOWN to tilt camera   Framerate: #{@frame_rate}",10,515);
   end
   
+  def toggle_rgb
+    @rgb = !@rgb;
+    @ir = false if @rgb
+    @kinect.enableRGB(@rgb);
+  end
+  
+  def toggle_ir
+    @ir = !@ir;
+    @rgb = false if @ir;
+    @kinect.enableIR(@ir);
+  end
+  
+  def tilt_up
+    @deg = @deg + 1;
+    tilt_now
+  end
+  
+  def tilt_down
+    @deg = @deg - 1;
+    tilt_now
+  end
+  
+  def tilt_now
+    @deg = constrain(@deg,0,30);
+    @kinect.tilt(@deg);
+  end
+  
   def keyPressed()
     if (key == 'd')
       @depth = !@depth;
       @kinect.enableDepth(@depth);
       
     elsif (key == 'r')
-      @rgb = !@rgb;
-      @ir = false if @rgb
-      @kinect.enableRGB(@rgb);
+      toggle_rgb
       
     elsif (key == 'i')
-      @ir = !@ir;
-      @rgb = false if @ir;
-      @kinect.enableIR(@ir);
+      toggle_ir
       
     elsif (key == CODED)
       if (key_code == UP)
-        @deg = @deg + 1;
+        tilt_up
       elsif (key_code == DOWN)
-        @deg = @deg - 1;
+        tilt_down
       end
-      @deg = constrain(@deg,0,30);
-      @kinect.tilt(@deg);
       
       elsif (key == 'q')
         stop
