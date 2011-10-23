@@ -1,3 +1,4 @@
+- update data/java_args.txt file to point to your library directory
 - plug in your kinect
 - run: $ rp5 run k.rb
 
