@@ -1,6 +1,6 @@
 require 'ruby-processing'
 
-class Sketch < Processing::App
+class RGBDepthText < Processing::App
   load_library "openkinect"
   include_package 'org.openkinect'
   include_package 'org.openkinect.processing'
@@ -86,6 +86,7 @@ class Sketch < Processing::App
   
   def stop()
     @kinect.quit();
-    exit
+    super.stop
+    # exit
   end
 end
