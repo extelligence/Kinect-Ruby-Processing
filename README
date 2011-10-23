@@ -1,0 +1,4 @@
+- move the .rp5rc file into your home dir
+- edit .rp5rc to have the correct java library path
+= plug in your kinect
+- run: $ rp5 run k.rb
