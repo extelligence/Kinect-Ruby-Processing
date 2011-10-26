@@ -43,19 +43,24 @@ class PointCloud < Processing::App
     @depth_lookup.each_with_index do |depth, i|
       @depth_lookup[i] = raw_depth_to_meters i
     end
+    
+    stroke 255
+    fill 255
+    text_mode SCREEN
+    
+    # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
+    @skip = 4
+    
+    # Scale up by 200
+    @factor = 200.0
   end
  
   def draw
     background 0
-    fill 255
-    text_mode SCREEN
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}",10,16
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}",10,16 if 
 
     # Get the raw depth as array of integers
     depth = @kinect.getRawDepth
-  
-    # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
-    skip = 4;
   
     # Translate and rotate
     translate width/2, height/2, -50
@@ -69,22 +74,17 @@ class PointCloud < Processing::App
         
         # Convert kinect data to world xyz coordinate
         raw_depth = depth[offset]
-        v = depth_to_world x, y, raw_depth
 
-        stroke 255
         push_matrix
-
-        # Scale up by 200
-        factor = 200
-        translate v.x*factor, v.y*factor, factor-v.z*factor
+        translate_world x, y, raw_depth
 
         # Draw a point
         point 0,0
         pop_matrix
         
-        y += skip
+        y += @skip
       end
-      x += skip
+      x += @skip
     end
   
     # Rotate
@@ -99,14 +99,21 @@ class PointCloud < Processing::App
     return 0.0
   end
   
-  def depth_to_world(x, y, depth_value)
+  def translate_world(x, y, depth_value)
     depth = @depth_lookup[depth_value]
-    result = PVector.new
-    result.x = Float((x - @cx_d) * depth * @fx_d)
-    result.y = Float((y - @cy_d) * depth * @fy_d)
-    result.z = Float(depth)
-    return result
+    translate Float((x - @cx_d) * depth * @fx_d) * @factor,
+              Float((y - @cy_d) * depth * @fy_d) * @factor,
+              @factor - Float(depth) * @factor
   end
+  
+  # def depth_to_world(x, y, depth_value)
+  #   depth = @depth_lookup[depth_value]
+  #   result = PVector.new
+  #   result.x = Float((x - @cx_d) * depth * @fx_d) * @factor
+  #   result.y = Float((y - @cy_d) * depth * @fy_d) * @factor
+  #   result.z = @factor - Float(depth) * @factor
+  #   return result
+  # end
   
   def stop
     @kinect.quit
