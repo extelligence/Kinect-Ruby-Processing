@@ -5,6 +5,10 @@
 require 'ruby-processing'
 
 ROTATION_SLIDER_SCALE = 1.0/100.0
+DEFAULT_SKIP = 4
+DEFAULT_ROTATION_DELTA = 0.015
+DEFAULT_TRAIL_FRAMES = 0
+
 
 class PointCloud < Processing::App
   load_libraries :openkinect, :control_panel
@@ -25,8 +29,9 @@ class PointCloud < Processing::App
 
   def setup
     # control panel defaults
-    @skip = 4
-    @rotation_delta = 0.015
+    @skip = DEFAULT_SKIP
+    @rotation_delta = DEFAULT_ROTATION_DELTA
+    @trail_frames = DEFAULT_TRAIL_FRAMES
     
     @a = 0.0
     @w = 640
@@ -52,6 +57,7 @@ class PointCloud < Processing::App
       @depth_lookup[i] = raw_depth_to_meters i
     end
     
+    background 0
     stroke 255
     fill 255
     text_mode SCREEN
@@ -62,7 +68,7 @@ class PointCloud < Processing::App
  
   def draw
     background 0
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}",10,16
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit.",10,16
 
     # Get the raw depth as array of integers
     depth = @kinect.getRawDepth
@@ -116,23 +122,39 @@ class PointCloud < Processing::App
     control_panel do |c|
       c.title = "Point Cloud"
       c.slider(:point_skip, 1..100, @skip) do |v|
-        @skip = Integer(v)
+        @skip = Integer v
       end
       c.slider(:rotation_delta, -2..2, @rotation_delta/ROTATION_SLIDER_SCALE) do |v|
         # value on slider scaled down by 1x10^-2
-        @rotation_delta = Float(v*ROTATION_SLIDER_SCALE)
+        @rotation_delta = Float v*ROTATION_SLIDER_SCALE
       end
+      # c.slider(:trail_frames, 0..5, @trail_frames) do |v|
+      #   @trail_frames = Integer v
+      # end
       # c.slider :opacity
       # c.slider(:app_width, 5..60, 20) { reset! }
       # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
       # c.checkbox :paused
-      # c.button :reset!
+      c.button :reset!
+    end
+  end
+  
+  def reset!
+    @skip = DEFAULT_SKIP
+    @rotation_delta = DEFAULT_ROTATION_DELTA
+    @trail_frames = DEFAULT_TRAIL_FRAMES
+  end
+  
+  def keyPressed()
+    if (key == 'q' || key == 'Q')
+      stop
     end
   end
   
   def stop
     @kinect.quit
-    super.stop
+    super.stop if super.respond_to? :stop
+    exit
   end
 
 end
