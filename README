@@ -1,3 +1,9 @@
+Assumptions:
+- you have Ruby installed
+- you have RubyGems installed
+- you have the ruby-processing gem installed
+
+Do this:
 - update data/java_args.txt file to point to your library directory
 - plug in your kinect
 - run: $ rp5 run rgb_depth_test.rb
@@ -8,5 +14,8 @@ For Live Coding:
 $app.toggle_rgb
 $app.tilt_up
 etc.
+
+More:
+- the control panel is implemented in point_cloud.rb
 
 More on Ruby-Processing Live Coding here: https://github.com/jashkenas/ruby-processing/wiki/Sketch-Watching-and-Live-Coding
