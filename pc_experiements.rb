@@ -46,6 +46,7 @@ class PointCloud < Processing::App
     @trail_frame = []
     @shape_width = DEFAULT_SHAPE_WIDTH
     @shape_height = DEFAULT_SHAPE_HEIGHT
+    @background_frames = []
     
     @a = 0.0
     @w = 640
@@ -90,7 +91,7 @@ class PointCloud < Processing::App
     background 0
     stroke @point_r, @point_g, @point_b
     fill @point_r, @point_g, @point_b
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit\n[SPACE] take [b]ackground",10,16
     # @trail_frame.slice!(0, @trail_frame.size)
     @trail_frame = []
     @is_recording = save_trail_frame?
@@ -168,7 +169,7 @@ class PointCloud < Processing::App
       d = max(1.0, @trail_frames.size)
 
       color_fade = 1.0*(i+1.0)/Float(d)
-      alpha_fade = map(color_fade, 0.0, 1.0, 0.2*255, 255)
+      alpha_fade = map(color_fade, 0.0, 1.0, 0.0, 0.5*255)
 
       # fill @trail_r, @trail_g, @trail_b, alpha_fade
       # stroke @trail_r, @trail_g, @trail_b, alpha_fade
@@ -257,7 +258,7 @@ class PointCloud < Processing::App
   end
   
   def keyPressed()
-    if (key == ' ')
+    if (key == ' ' || key == 'b')
       puts "space"
     elsif (key == 'q' || key == 'Q')
       stop
