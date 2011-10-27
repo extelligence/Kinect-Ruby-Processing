@@ -7,7 +7,6 @@ require 'ruby-processing'
 ROTATION_SLIDER_SCALE = 1.0/100.0
 DEFAULT_SKIP = 4
 DEFAULT_ROTATION_DELTA = 0.015
-# DEFAULT_TRAIL_FRAMES = 0
 
 
 class PointCloud < Processing::App
@@ -31,7 +30,6 @@ class PointCloud < Processing::App
     # control panel defaults
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    # @trail_frames = DEFAULT_TRAIL_FRAMES
     
     @a = 0.0
     @w = 640
@@ -128,13 +126,6 @@ class PointCloud < Processing::App
         # value on slider scaled down by 1x10^-2
         @rotation_delta = Float v*ROTATION_SLIDER_SCALE
       end
-      # c.slider(:trail_frames, 0..5, @trail_frames) do |v|
-      #   @trail_frames = Integer v
-      # end
-      # c.slider :opacity
-      # c.slider(:app_width, 5..60, 20) { reset! }
-      # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
-      # c.checkbox :paused
       c.button :reset!
     end
   end
@@ -142,7 +133,6 @@ class PointCloud < Processing::App
   def reset!
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    # @trail_frames = DEFAULT_TRAIL_FRAMES
   end
   
   def keyPressed()
