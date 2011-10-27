@@ -1,4 +1,4 @@
-# Based on the pure Processing example by Daniel Shiffman
+# Port of the pure Processing example by Daniel Shiffman
 # Kinect Point Cloud example
 # http://www.shiffman.net
 # https://github.com/shiffman/libfreenect/tree/master/wrappers/java/processing
