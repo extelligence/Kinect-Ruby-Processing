@@ -7,7 +7,7 @@ require 'ruby-processing'
 ROTATION_SLIDER_SCALE = 1.0/100.0
 DEFAULT_SKIP = 10
 DEFAULT_ROTATION_DELTA = 0.015
-DEFAULT_TRAIL_FRAMES_SIZE = 8
+DEFAULT_TRAIL_FRAMES_SIZE = 13
 DEFAULT_SHAPE = "point"
 DEFAULT_SHAPE_WIDTH = 1.0
 DEFAULT_SHAPE_HEIGHT = 1.0
@@ -157,8 +157,6 @@ class PointCloud < Processing::App
   
   def translate_draw_point(x, y, z, cum_a)
     push_matrix
-    # delta_a = @a - cum_a
-    # rotateY delta_a
     translate x, y, z
     draw_point
     pop_matrix
@@ -167,13 +165,15 @@ class PointCloud < Processing::App
   def draw_trail_frames
     @trail_frames.each_with_index do |the_frame, i|
       # no_stroke
-      d = max(1, @trail_frames_size)
-      pt_alpha = 1.0*(i+1/d)
-      # fill 255*pt_alpha
-      # fill 255, pt_alpha
-      
-      fill @trail_r, @trail_g, @trail_b, pt_alpha
-      stroke @trail_r, @trail_g, @trail_b, pt_alpha
+      d = max(1.0, @trail_frames.size)
+
+      color_fade = 1.0*(i+1.0)/Float(d)
+      alpha_fade = map(color_fade, 0.0, 1.0, 0.2*255, 255)
+
+      # fill @trail_r, @trail_g, @trail_b, alpha_fade
+      # stroke @trail_r, @trail_g, @trail_b, alpha_fade
+      fill @trail_r*color_fade, @trail_g*color_fade, @trail_b*color_fade, alpha_fade
+      stroke @trail_r*color_fade, @trail_g*color_fade, @trail_b*color_fade, alpha_fade
       
       push_matrix
       delta_a = the_frame.first[3] - @a
@@ -231,10 +231,7 @@ class PointCloud < Processing::App
       c.slider(:trail_r, 0..255, @trail_r)
       c.slider(:trail_g, 0..255, @trail_g)
       c.slider(:trail_b, 0..255, @trail_b)
-      # c.slider :opacity
-      # c.slider(:app_width, 5..60, 20) { reset! }
       c.menu(:shape, ['ellipse', 'point', 'rect'], DEFAULT_SHAPE)
-      # c.checkbox :paused
       c.button :clear_trail
       c.button :reset!
     end
