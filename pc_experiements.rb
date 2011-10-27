@@ -8,7 +8,10 @@ ROTATION_SLIDER_SCALE = 1.0/100.0
 DEFAULT_SKIP = 4
 DEFAULT_ROTATION_DELTA = 0.015
 DEFAULT_TRAIL_FRAMES_SIZE = 0
-DEFAULT_SHAPE_RADIUS = 2.0
+DEFAULT_SHAPE_WIDTH = 1.0
+DEFAULT_TRAIL_R = 204
+DEFAULT_TRAIL_G = 0
+DEFAULT_TRAIL_B = 132
 
 
 class PointCloud < Processing::App
@@ -21,7 +24,8 @@ class PointCloud < Processing::App
   
   attr_accessor :a
   attr_reader :skip
-
+  attr_accessor :trail_r, :trail_g, :trail_b
+  
   # Size of kinect image
   attr_accessor :w, :h
 
@@ -33,13 +37,19 @@ class PointCloud < Processing::App
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
     @trail_frames_size = DEFAULT_TRAIL_FRAMES_SIZE
-    @trail_frames = Array.new DEFAULT_TRAIL_FRAMES_SIZE
-    @shape_radius = DEFAULT_SHAPE_RADIUS
+    @trail_frames = []
+    @trail_frame = []
+    @shape_width = DEFAULT_SHAPE_WIDTH
     
     @a = 0.0
     @w = 640
     @h = 480
     @depth_lookup = Array.new 2048
+    @allow_rotation = true
+    @allow_trail = true
+    @trail_r = DEFAULT_TRAIL_R
+    @trail_g = DEFAULT_TRAIL_G
+    @trail_b = DEFAULT_TRAIL_B
     
     @fx_d = 1.0 / 5.9421434211923247e+02
     @fy_d = 1.0 / 5.9104053696870778e+02
@@ -71,8 +81,10 @@ class PointCloud < Processing::App
     background 0
     stroke 255
     fill 255
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit.",10,16
-    @trail_frame = Array.new
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
+    # @trail_frame.slice!(0, @trail_frame.size)
+    @trail_frame = []
+    @is_recording = save_trail_frame?
     
     # Get the raw depth as array of integers
     depth = @kinect.getRawDepth
@@ -103,7 +115,7 @@ class PointCloud < Processing::App
       x += skip
     end
   
-    if save_trail_frame?
+    if @is_recording
       draw_trail_frames
   
       # save trail frame
@@ -111,39 +123,50 @@ class PointCloud < Processing::App
     end
     
     # Rotate
-    @a += @rotation_delta
+    @a += @rotation_delta if @allow_rotation
   end
   
   def save_trail_frame?
-    return @trail_frames_size > 0
+    return @allow_trail && @trail_frames_size > 0
   end
   
   def save_trail_frame
-    @trail_frames.delete_at 0 if @trail_frames.size == @trail_frames_size
+    @trail_frames.delete_at 0 if @trail_frames.size >= @trail_frames_size
     @trail_frames << @trail_frame
   end
   
   def draw_point
     # point 0,0
-    ellipse 0, 0, @shape_radius, @shape_radius
+    ellipse 0, 0, @shape_width, @shape_width
   end
   
-  def translate_draw_point(x, y, z)
+  def translate_draw_point(x, y, z, cum_a)
     push_matrix
+    # delta_a = @a - cum_a
+    # rotateY delta_a
     translate x, y, z
     draw_point
     pop_matrix
   end
   
   def draw_trail_frames
-    @trail_frames.each_with_index do |frame, i|
-      no_stroke
+    @trail_frames.each_with_index do |the_frame, i|
+      # no_stroke
       d = max(1, @trail_frames_size)
-      fill 255, 1.0*(i+1/d)
-      # stroke 255, 1.0*(i+1/@trail_frames_size)
-      frame.each do |pt|
+      pt_alpha = 1.0*(i+1/d)
+      # fill 255*pt_alpha
+      # fill 255, pt_alpha
+      
+      fill @trail_r, @trail_g, @trail_b, pt_alpha
+      stroke @trail_r, @trail_g, @trail_b, pt_alpha
+      
+      push_matrix
+      delta_a = the_frame.first[3] - @a
+      rotateY delta_a
+      the_frame.each do |pt|
         translate_draw_point *pt
       end
+      pop_matrix
     end
   end
   
@@ -161,7 +184,7 @@ class PointCloud < Processing::App
     y = Float((y - @cy_d) * depth * @fy_d) * @factor
     z = @factor - Float(depth) * @factor
     
-    @trail_frame << [x, y, z] if save_trail_frame?
+    @trail_frame << [x, y, z, a] if @is_recording
     translate x, y, z
   end
   
@@ -171,32 +194,45 @@ class PointCloud < Processing::App
       c.slider(:point_skip, 1..100, @skip) do |v|
         @skip = Integer v
       end
+      c.checkbox :allow_rotation, @allow_rotation
       c.slider(:rotation_delta, -2..2, @rotation_delta/ROTATION_SLIDER_SCALE) do |v|
         # value on slider scaled down by 1x10^-2
         @rotation_delta = Float v*ROTATION_SLIDER_SCALE
       end
+      c.checkbox :allow_trail, @allow_trail
       c.slider(:trail_frames_size, 0..150, @trail_frames_size) do |v|
         @trail_frames_size = Integer v
         
         # trim trail 
         if (@trail_frames.size > @trail_frames_size)
-          @trail_frames.slice! 0, @trail_frames.size - @trail_frames_size - 1
+          @trail_frames.slice! 0, @trail_frames.size - @trail_frames_size
         end
       end
-      c.slider(:shape_radius, 1..10, @shape_radius)
+      c.slider(:shape_width, 1..10, @shape_width)
+      c.slider(:trail_r, 0..255, @trail_r)
+      c.slider(:trail_g, 0..255, @trail_g)
+      c.slider(:trail_b, 0..255, @trail_b)
       # c.slider :opacity
       # c.slider(:app_width, 5..60, 20) { reset! }
       # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
       # c.checkbox :paused
+      c.button :clear_trail
       c.button :reset!
     end
+  end
+  
+  def clear_trail
+    @trail_frames.slice!(0, @trail_frames.size)
   end
   
   def reset!
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    @trail_frames = DEFAULT_TRAIL_FRAMES_SIZE
-    @shape_radius = DEFAULT_SHAPE_RADIUS
+    @trail_frames = Array.new DEFAULT_TRAIL_FRAMES_SIZE
+    @shape_width = DEFAULT_SHAPE_WIDTH
+    @trail_r = DEFAULT_TRAIL_R
+    @trail_g = DEFAULT_TRAIL_G
+    @trail_b = DEFAULT_TRAIL_B
   end
   
   def keyPressed()
