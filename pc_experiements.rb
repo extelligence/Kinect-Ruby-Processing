@@ -5,13 +5,18 @@
 require 'ruby-processing'
 
 ROTATION_SLIDER_SCALE = 1.0/100.0
-DEFAULT_SKIP = 4
+DEFAULT_SKIP = 10
 DEFAULT_ROTATION_DELTA = 0.015
-DEFAULT_TRAIL_FRAMES_SIZE = 0
+DEFAULT_TRAIL_FRAMES_SIZE = 8
+DEFAULT_SHAPE = "point"
 DEFAULT_SHAPE_WIDTH = 1.0
+DEFAULT_SHAPE_HEIGHT = 1.0
 DEFAULT_TRAIL_R = 204
 DEFAULT_TRAIL_G = 0
 DEFAULT_TRAIL_B = 132
+DEFAULT_POINT_R = 0
+DEFAULT_POINT_G = 255
+DEFAULT_POINT_B = 255
 
 
 class PointCloud < Processing::App
@@ -40,13 +45,17 @@ class PointCloud < Processing::App
     @trail_frames = []
     @trail_frame = []
     @shape_width = DEFAULT_SHAPE_WIDTH
+    @shape_height = DEFAULT_SHAPE_HEIGHT
     
     @a = 0.0
     @w = 640
     @h = 480
     @depth_lookup = Array.new 2048
     @allow_rotation = true
-    @allow_trail = true
+    @allow_trail = false
+    @point_r = DEFAULT_POINT_R
+    @point_g = DEFAULT_POINT_G
+    @point_b = DEFAULT_POINT_B
     @trail_r = DEFAULT_TRAIL_R
     @trail_g = DEFAULT_TRAIL_G
     @trail_b = DEFAULT_TRAIL_B
@@ -79,8 +88,8 @@ class PointCloud < Processing::App
  
   def draw
     background 0
-    stroke 255
-    fill 255
+    stroke @point_r, @point_g, @point_b
+    fill @point_r, @point_g, @point_b
     text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
     # @trail_frame.slice!(0, @trail_frame.size)
     @trail_frame = []
@@ -136,8 +145,14 @@ class PointCloud < Processing::App
   end
   
   def draw_point
-    # point 0,0
-    ellipse 0, 0, @shape_width, @shape_width
+    case @shape
+    when "ellipse"
+      ellipse 0, 0, @shape_width, @shape_height
+    when "rect"
+      rect 0, 0, @shape_width, @shape_height
+    else 
+      point 0, 0
+    end
   end
   
   def translate_draw_point(x, y, z, cum_a)
@@ -208,13 +223,17 @@ class PointCloud < Processing::App
           @trail_frames.slice! 0, @trail_frames.size - @trail_frames_size
         end
       end
-      c.slider(:shape_width, 1..10, @shape_width)
+      c.slider(:shape_width, 1..100, @shape_width)
+      c.slider(:shape_height, 1..100, @shape_height)
+      c.slider(:point_r, 0..255, @point_r)
+      c.slider(:point_g, 0..255, @point_g)
+      c.slider(:point_b, 0..255, @point_b)
       c.slider(:trail_r, 0..255, @trail_r)
       c.slider(:trail_g, 0..255, @trail_g)
       c.slider(:trail_b, 0..255, @trail_b)
       # c.slider :opacity
       # c.slider(:app_width, 5..60, 20) { reset! }
-      # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
+      c.menu(:shape, ['ellipse', 'point', 'rect'], DEFAULT_SHAPE)
       # c.checkbox :paused
       c.button :clear_trail
       c.button :reset!
@@ -228,8 +247,13 @@ class PointCloud < Processing::App
   def reset!
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    @trail_frames = Array.new DEFAULT_TRAIL_FRAMES_SIZE
+    @trail_frames = []
+    @shape = DEFAULT_SHAPE
     @shape_width = DEFAULT_SHAPE_WIDTH
+    @shape_height = DEFAULT_SHAPE_HEIGHT
+    @point_r = DEFAULT_POINT_R
+    @point_g = DEFAULT_POINT_G
+    @point_b = DEFAULT_POINT_B
     @trail_r = DEFAULT_TRAIL_R
     @trail_g = DEFAULT_TRAIL_G
     @trail_b = DEFAULT_TRAIL_B
