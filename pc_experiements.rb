@@ -7,7 +7,8 @@ require 'ruby-processing'
 ROTATION_SLIDER_SCALE = 1.0/100.0
 DEFAULT_SKIP = 4
 DEFAULT_ROTATION_DELTA = 0.015
-# DEFAULT_TRAIL_FRAMES = 0
+DEFAULT_TRAIL_FRAMES_SIZE = 0
+DEFAULT_SHAPE_RADIUS = 2.0
 
 
 class PointCloud < Processing::App
@@ -31,7 +32,9 @@ class PointCloud < Processing::App
     # control panel defaults
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    # @trail_frames = DEFAULT_TRAIL_FRAMES
+    @trail_frames_size = DEFAULT_TRAIL_FRAMES_SIZE
+    @trail_frames = Array.new DEFAULT_TRAIL_FRAMES_SIZE
+    @shape_radius = DEFAULT_SHAPE_RADIUS
     
     @a = 0.0
     @w = 640
@@ -57,9 +60,7 @@ class PointCloud < Processing::App
       @depth_lookup[i] = raw_depth_to_meters i
     end
     
-    background 0
-    stroke 255
-    fill 255
+    # background 0
     text_mode SCREEN
     
     # Scale up by 200
@@ -68,8 +69,11 @@ class PointCloud < Processing::App
  
   def draw
     background 0
+    stroke 255
+    fill 255
     text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit.",10,16
-
+    @trail_frame = Array.new
+    
     # Get the raw depth as array of integers
     depth = @kinect.getRawDepth
   
@@ -90,7 +94,7 @@ class PointCloud < Processing::App
         translate_world x, y, raw_depth
 
         # Draw a point
-        point 0,0
+        draw_point
         pop_matrix
         
         # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
@@ -99,8 +103,48 @@ class PointCloud < Processing::App
       x += skip
     end
   
+    if save_trail_frame?
+      draw_trail_frames
+  
+      # save trail frame
+      save_trail_frame
+    end
+    
     # Rotate
     @a += @rotation_delta
+  end
+  
+  def save_trail_frame?
+    return @trail_frames_size > 0
+  end
+  
+  def save_trail_frame
+    @trail_frames.delete_at 0 if @trail_frames.size == @trail_frames_size
+    @trail_frames << @trail_frame
+  end
+  
+  def draw_point
+    # point 0,0
+    ellipse 0, 0, @shape_radius, @shape_radius
+  end
+  
+  def translate_draw_point(x, y, z)
+    push_matrix
+    translate x, y, z
+    draw_point
+    pop_matrix
+  end
+  
+  def draw_trail_frames
+    @trail_frames.each_with_index do |frame, i|
+      no_stroke
+      d = max(1, @trail_frames_size)
+      fill 255, 1.0*(i+1/d)
+      # stroke 255, 1.0*(i+1/@trail_frames_size)
+      frame.each do |pt|
+        translate_draw_point *pt
+      end
+    end
   end
   
   # These functions come from: http://graphics.stanford.edu/~mdfisher/Kinect.html
@@ -113,9 +157,12 @@ class PointCloud < Processing::App
   
   def translate_world(x, y, depth_value)
     depth = @depth_lookup[depth_value]
-    translate Float((x - @cx_d) * depth * @fx_d) * @factor,
-              Float((y - @cy_d) * depth * @fy_d) * @factor,
-              @factor - Float(depth) * @factor
+    x = Float((x - @cx_d) * depth * @fx_d) * @factor
+    y = Float((y - @cy_d) * depth * @fy_d) * @factor
+    z = @factor - Float(depth) * @factor
+    
+    @trail_frame << [x, y, z] if save_trail_frame?
+    translate x, y, z
   end
   
   def setup_control
@@ -128,9 +175,15 @@ class PointCloud < Processing::App
         # value on slider scaled down by 1x10^-2
         @rotation_delta = Float v*ROTATION_SLIDER_SCALE
       end
-      # c.slider(:trail_frames, 0..5, @trail_frames) do |v|
-      #   @trail_frames = Integer v
-      # end
+      c.slider(:trail_frames_size, 0..150, @trail_frames_size) do |v|
+        @trail_frames_size = Integer v
+        
+        # trim trail 
+        if (@trail_frames.size > @trail_frames_size)
+          @trail_frames.slice! 0, @trail_frames.size - @trail_frames_size - 1
+        end
+      end
+      c.slider(:shape_radius, 1..10, @shape_radius)
       # c.slider :opacity
       # c.slider(:app_width, 5..60, 20) { reset! }
       # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
@@ -142,7 +195,8 @@ class PointCloud < Processing::App
   def reset!
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    # @trail_frames = DEFAULT_TRAIL_FRAMES
+    @trail_frames = DEFAULT_TRAIL_FRAMES_SIZE
+    @shape_radius = DEFAULT_SHAPE_RADIUS
   end
   
   def keyPressed()
