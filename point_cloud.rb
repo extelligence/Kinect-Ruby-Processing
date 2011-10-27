@@ -4,6 +4,8 @@
 # https://github.com/shiffman/libfreenect/tree/master/wrappers/java/processing
 require 'ruby-processing'
 
+ROTATION_SLIDER_SCALE = 1.0/100.0
+
 class PointCloud < Processing::App
   load_libraries :openkinect, :control_panel
   include_package 'org.openkinect'
@@ -22,6 +24,10 @@ class PointCloud < Processing::App
   attr_accessor :depth_lookup
 
   def setup
+    # control panel defaults
+    @skip = 4
+    @rotation_delta = 0.015
+    
     @a = 0.0
     @w = 640
     @h = 480
@@ -49,9 +55,6 @@ class PointCloud < Processing::App
     stroke 255
     fill 255
     text_mode SCREEN
-    
-    # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
-    # @skip = 4
     
     # Scale up by 200
     @factor = 200.0
@@ -84,13 +87,14 @@ class PointCloud < Processing::App
         point 0,0
         pop_matrix
         
+        # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
         y += skip
       end
       x += skip
     end
   
     # Rotate
-    @a += 0.015
+    @a += @rotation_delta
   end
   
   # These functions come from: http://graphics.stanford.edu/~mdfisher/Kinect.html
@@ -108,21 +112,15 @@ class PointCloud < Processing::App
               @factor - Float(depth) * @factor
   end
   
-  # def depth_to_world(x, y, depth_value)
-  #   depth = @depth_lookup[depth_value]
-  #   result = PVector.new
-  #   result.x = Float((x - @cx_d) * depth * @fx_d) * @factor
-  #   result.y = Float((y - @cy_d) * depth * @fy_d) * @factor
-  #   result.z = @factor - Float(depth) * @factor
-  #   return result
-  # end
-  
   def setup_control
     control_panel do |c|
       c.title = "Point Cloud"
-      c.slider(:point_skip, 1..100, 4) do |v|
+      c.slider(:point_skip, 1..100, @skip) do |v|
         @skip = Integer(v)
-        @point_skip = @skip
+      end
+      c.slider(:rotation_delta, -2..2, @rotation_delta/ROTATION_SLIDER_SCALE) do |v|
+        # value on slider scaled down by 1x10^-2
+        @rotation_delta = Float(v*ROTATION_SLIDER_SCALE)
       end
       # c.slider :opacity
       # c.slider(:app_width, 5..60, 20) { reset! }
