@@ -7,7 +7,7 @@ require 'ruby-processing'
 ROTATION_SLIDER_SCALE = 1.0/100.0
 DEFAULT_SKIP = 4
 DEFAULT_ROTATION_DELTA = 0.015
-DEFAULT_TRAIL_FRAMES = 0
+# DEFAULT_TRAIL_FRAMES = 0
 
 
 class PointCloud < Processing::App
@@ -31,7 +31,7 @@ class PointCloud < Processing::App
     # control panel defaults
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    @trail_frames = DEFAULT_TRAIL_FRAMES
+    # @trail_frames = DEFAULT_TRAIL_FRAMES
     
     @a = 0.0
     @w = 640
@@ -142,7 +142,7 @@ class PointCloud < Processing::App
   def reset!
     @skip = DEFAULT_SKIP
     @rotation_delta = DEFAULT_ROTATION_DELTA
-    @trail_frames = DEFAULT_TRAIL_FRAMES
+    # @trail_frames = DEFAULT_TRAIL_FRAMES
   end
   
   def keyPressed()
