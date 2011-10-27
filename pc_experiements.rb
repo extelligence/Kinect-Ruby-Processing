@@ -257,7 +257,9 @@ class PointCloud < Processing::App
   end
   
   def keyPressed()
-    if (key == 'q' || key == 'Q')
+    if (key == ' ')
+      puts "space"
+    elsif (key == 'q' || key == 'Q')
       stop
     end
   end
