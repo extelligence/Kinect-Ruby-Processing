@@ -1,9 +1,9 @@
 - update data/java_args.txt file to point to your library directory
 - plug in your kinect
-- run: $ rp5 run k.rb
+- run: $ rp5 run rgb_depth_test.rb
 
 For Live Coding:
-- run: $ rp5 live k.rb
+- run: $ rp5 live rgb_depth_test.rb
 - type this
 $app.toggle_rgb
 $app.tilt_up

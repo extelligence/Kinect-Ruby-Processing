@@ -5,7 +5,7 @@
 require 'ruby-processing'
 
 class PointCloud < Processing::App
-  load_library "openkinect"
+  load_libraries :openkinect, :control_panel
   include_package 'org.openkinect'
   include_package 'org.openkinect.processing'
 
@@ -13,6 +13,7 @@ class PointCloud < Processing::App
   attr_accessor :kinect
   
   attr_accessor :a
+  attr_reader :skip
 
   # Size of kinect image
   attr_accessor :w, :h
@@ -32,6 +33,7 @@ class PointCloud < Processing::App
     @cy_d = 2.4273913761751615e+02
 
     size 800, 600, P3D
+    setup_control
     @kinect = Kinect.new self
     @kinect.start
     @kinect.enableDepth true
@@ -49,7 +51,7 @@ class PointCloud < Processing::App
     text_mode SCREEN
     
     # We're just going to calculate and draw every 4th pixel (equivalent of 160x120)
-    @skip = 4
+    # @skip = 4
     
     # Scale up by 200
     @factor = 200.0
@@ -57,7 +59,7 @@ class PointCloud < Processing::App
  
   def draw
     background 0
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}",10,16 if 
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}",10,16
 
     # Get the raw depth as array of integers
     depth = @kinect.getRawDepth
@@ -82,9 +84,9 @@ class PointCloud < Processing::App
         point 0,0
         pop_matrix
         
-        y += @skip
+        y += skip
       end
-      x += @skip
+      x += skip
     end
   
     # Rotate
@@ -114,6 +116,21 @@ class PointCloud < Processing::App
   #   result.z = @factor - Float(depth) * @factor
   #   return result
   # end
+  
+  def setup_control
+    control_panel do |c|
+      c.title = "Point Cloud"
+      c.slider(:point_skip, 1..100, 4) do |v|
+        @skip = Integer(v)
+        @point_skip = @skip
+      end
+      # c.slider :opacity
+      # c.slider(:app_width, 5..60, 20) { reset! }
+      # c.menu(:options, ['one', 'two', 'three'], 'two') {|m| load_menu_item(m) }
+      # c.checkbox :paused
+      # c.button :reset!
+    end
+  end
   
   def stop
     @kinect.quit
