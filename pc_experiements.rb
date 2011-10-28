@@ -54,6 +54,7 @@ class PointCloud < Processing::App
     @allow_rotation = true
     @allow_trail = false
     @nyan_mode = false
+    @repaint_background = true
     @point_r = DEFAULT_POINT_R
     @point_g = DEFAULT_POINT_G
     @point_b = DEFAULT_POINT_B
@@ -88,7 +89,7 @@ class PointCloud < Processing::App
   end
  
   def draw
-    background 0
+    background 0 if @repaint_background
     setup_point_color
     
     text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
@@ -287,6 +288,7 @@ class PointCloud < Processing::App
       c.menu(:shape, ['ellipse', 'point', 'rect'], DEFAULT_SHAPE)
       c.button :clear_trail
       c.checkbox :nyan_mode, @nyan_mode
+      c.checkbox :repaint_background, @repaint_background
       c.button :reset!
     end
   end
