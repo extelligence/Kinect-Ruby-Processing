@@ -53,6 +53,7 @@ class PointCloud < Processing::App
     @depth_lookup = Array.new 2048
     @allow_rotation = true
     @allow_trail = false
+    @nyan_mode = false
     @point_r = DEFAULT_POINT_R
     @point_g = DEFAULT_POINT_G
     @point_b = DEFAULT_POINT_B
@@ -88,8 +89,8 @@ class PointCloud < Processing::App
  
   def draw
     background 0
-    stroke @point_r, @point_g, @point_b
-    fill @point_r, @point_g, @point_b
+    setup_point_color
+    
     text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
     # @trail_frame.slice!(0, @trail_frame.size)
     @trail_frame = []
@@ -162,6 +163,57 @@ class PointCloud < Processing::App
     pop_matrix
   end
   
+  def setup_point_color
+    if @nyan_mode 
+      # grey 169 167 171 
+      stroke 169.0, 167.0, 171.0
+      fill 169.0, 167.0, 171.0
+    else
+      stroke @point_r, @point_g, @point_b
+      fill @point_r, @point_g, @point_b
+    end
+  end
+  
+  def setup_nyan_color_trail(y, color_fade, alpha_fade)
+    y_offset = 70.0
+    y_seg = ((@h) / 6.0) - y_offset
+    if (y < y_seg) 
+      # red 255	43	15	
+      r = 255.0
+      g = 43.0
+      b = 15.0
+    elsif (y < y_seg*2.0)
+      # orange 255	168	7	
+      r = 255.0
+      g = 168.0
+      b = 7.0
+    elsif (y < y_seg*3.0)
+      # yellow 255	243	0	
+      r = 255.0
+      g = 243.0
+      b = 0.0
+    elsif (y < y_seg*4.0)
+      # green 51	234	5	
+      r = 51.0
+      g = 234.0
+      b = 5.0
+    elsif (y < y_seg*5.0)
+      # blue 8	165	255	
+      r = 8.0
+      g = 165.0
+      b = 255.0
+    else
+      # purple 119	86	255	
+      r = 119.0
+      g = 86.0
+      b = 255.0
+    end
+    
+    bow_color = color r*color_fade, g*color_fade, b*color_fade
+    fill bow_color, alpha_fade
+    stroke bow_color, alpha_fade
+  end
+  
   def draw_trail_frames
     @trail_frames.each_with_index do |the_frame, i|
       # no_stroke
@@ -179,6 +231,7 @@ class PointCloud < Processing::App
       delta_a = the_frame.first[3] - @a
       rotateY delta_a
       the_frame.each do |pt|
+        setup_nyan_color_trail(pt[1], color_fade, alpha_fade) if @nyan_mode
         translate_draw_point *pt
       end
       pop_matrix
@@ -233,6 +286,7 @@ class PointCloud < Processing::App
       c.slider(:trail_b, 0..255, @trail_b)
       c.menu(:shape, ['ellipse', 'point', 'rect'], DEFAULT_SHAPE)
       c.button :clear_trail
+      c.checkbox :nyan_mode, @nyan_mode
       c.button :reset!
     end
   end
