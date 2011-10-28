@@ -92,7 +92,7 @@ class PointCloud < Processing::App
     background 0 if @repaint_background
     setup_point_color
     
-    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16
+    text "Kinect FR: #{@kinect.getDepthFPS}\nProcessing FR: #{frame_rate}\n[Q]uit",10,16 if @repaint_background
     # @trail_frame.slice!(0, @trail_frame.size)
     @trail_frame = []
     @is_recording = save_trail_frame?
@@ -289,7 +289,7 @@ class PointCloud < Processing::App
       c.button :clear_trail
       c.checkbox :nyan_mode, @nyan_mode
       c.checkbox :repaint_background, @repaint_background
-      c.button :reset!
+      # c.button :reset!
     end
   end
   
